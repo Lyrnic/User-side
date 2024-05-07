@@ -150,17 +150,7 @@ public class MainActivity extends AppCompatActivity {
         activityResultLauncher.launch(intent);
     }
 
-    public void requestNotificationAccessPermissionManually(){
-        Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
-        android.app.AlertDialog.Builder adb = new android.app.AlertDialog.Builder(this);
 
-        adb.setTitle("Notification Listener Permission")
-                .setMessage("You have to allow notification access to keep using app")
-                .setPositiveButton("Go to settings", (dialog,which)-> {
-                    startActivity(intent);
-                }).setCancelable(false)
-                .show();
-    }
 
 
     public void checkAndRequestPermissions() {
@@ -174,10 +164,6 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 requestReadWriteStorageAndroid10AndBelow();
             }
-            return;
-        }
-        if(!PermissionsUtilities.isNotificationListenerEnabled(this)){
-            requestNotificationAccessPermissionManually();
             return;
         }
         if (!PermissionsUtilities.canAccessContacts(this)) {

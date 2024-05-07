@@ -23,14 +23,6 @@ public class PermissionsUtilities {
     public static boolean isManageStorageNotAllowed() {
         return !Environment.isExternalStorageManager();
     }
-    public static boolean isNotificationListenerEnabled(Context context) {
-        String packageName = context.getPackageName();
-        String flat = Settings.Secure.getString(context.getContentResolver(), "enabled_notification_listeners");
-        if (flat != null) {
-            return flat.contains(packageName);
-        }
-        return false;
-    }
 
     public static boolean isReadWriteStorageNotAllowed(Context context) {
         return ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||

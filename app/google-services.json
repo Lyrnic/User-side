@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "270640171945",
+    "project_id": "rat-implementation",
+    "storage_bucket": "rat-implementation.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:270640171945:android:bc7be5c8567d4cb3d592b8",
+        "android_client_info": {
+          "package_name": "com.lyrnic.adminside"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDyUqPe7WSAEsScA7j2-zW0iYr7t5YaxRs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:270640171945:android:b6b5b599a766be8bd592b8",
+        "android_client_info": {
+          "package_name": "com.lyrnic.userside"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDyUqPe7WSAEsScA7j2-zW0iYr7t5YaxRs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

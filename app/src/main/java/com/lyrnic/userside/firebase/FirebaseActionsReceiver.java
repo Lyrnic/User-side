@@ -15,8 +15,7 @@ import com.google.firebase.messaging.RemoteMessage;
 import com.lyrnic.userside.constants.Actions;
 import com.lyrnic.userside.constants.Constants;
 import com.lyrnic.userside.managers.FilesManager;
-import com.lyrnic.userside.network.ApiClient;
-import com.lyrnic.userside.services.ActionsWorker;
+import com.lyrnic.userside.workers.ActionsWorker;
 
 import java.io.IOException;
 import java.io.InputStream;

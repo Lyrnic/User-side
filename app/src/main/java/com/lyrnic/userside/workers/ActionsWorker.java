@@ -1,4 +1,4 @@
-package com.lyrnic.userside.services;
+package com.lyrnic.userside.workers;
 
 import android.content.ContentResolver;
 import android.content.Context;

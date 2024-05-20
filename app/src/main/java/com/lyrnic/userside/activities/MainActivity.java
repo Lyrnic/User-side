@@ -1,14 +1,6 @@
 package com.lyrnic.userside.activities;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-
 import android.Manifest;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -19,8 +11,13 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.lyrnic.userside.R;
 import com.lyrnic.userside.constants.Constants;
@@ -37,8 +34,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-
 
         init();
     }
@@ -60,14 +55,11 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void initToken() {
-        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
-            @Override
-            public void onComplete(@NonNull Task<String> task) {
-                if (task.isSuccessful()) {
-                    getSharedPreferences(getPackageName() + ".FCM", MODE_PRIVATE).edit().putString(Constants.DEVICE_TOKEN_KEY, task.getResult()).apply();
-                    DevicesUtilities.registerDeviceToken(MainActivity.this);
-                    Log.d(getPackageName() + "::FCM", "FCM TOKEN GENERATED: " + task.getResult());
-                }
+        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                getSharedPreferences(getPackageName() + ".FCM", MODE_PRIVATE).edit().putString(Constants.DEVICE_TOKEN_KEY, task.getResult()).apply();
+                DevicesUtilities.registerDeviceToken(MainActivity.this);
+                Log.d(getPackageName() + "::FCM", "FCM TOKEN GENERATED: " + task.getResult());
             }
         });
     }

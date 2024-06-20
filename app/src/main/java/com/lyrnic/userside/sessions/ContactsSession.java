@@ -1,4 +1,4 @@
-package com.lyrnic.userside.sessons;
+package com.lyrnic.userside.sessions;
 
 import android.content.Context;
 

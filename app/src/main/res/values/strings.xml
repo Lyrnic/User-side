@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">User  Side</string>
+    <string name="accessibility_service_description">Enable</string>
 </resources>

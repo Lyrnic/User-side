@@ -18,6 +18,9 @@ public class TokenManager {
     }
 
     public static String getToken(Context context) {
+        if (!hasToken(context)) {
+            generateToken(context);
+        }
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getString(KEY_TOKEN, null);
     }
 

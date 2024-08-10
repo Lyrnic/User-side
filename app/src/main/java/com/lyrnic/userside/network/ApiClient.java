@@ -1,6 +1,8 @@
 package com.lyrnic.userside.network;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkCapabilities;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -64,9 +66,10 @@ public class ApiClient {
 
         return success;
     }
-    public static Request getWebSocketRequest(Context context){
+
+    public static Request getWebSocketRequest(String token){
         return new Request.Builder()
-                .url("wss://websocket.bormaa.com/" + "?token=" + TokenManager.getToken(context))
+                .url("wss://websocket.bormaa.com/" + "?token=" + token + "&" + "admin=false")
                 .build();
     }
 

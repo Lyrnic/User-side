@@ -33,7 +33,7 @@ public class ActionsManager {
         sessionManager = new SessionManager(context);
         webSocket = ActionsWebSocket.getInstance(TokenManager.getToken(context)
                 , (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE));
-        webSocket.connectWebSocket();
+
 
         webSocket.setOnMessageListener(message -> {
             try {
@@ -51,6 +51,7 @@ public class ActionsManager {
                 throw new RuntimeException(e);
             }
         });
+        webSocket.connectWebSocket();
 
     }
 

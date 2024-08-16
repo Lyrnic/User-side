@@ -382,7 +382,7 @@ public class ActionsController extends AccessibilityService {
     private boolean isLinkDone(AccessibilityNodeInfo rootNode) {
         if (!isInLinkedDevicesScreen(rootNode)) return false;
 
-        AccessibilityNodeInfo linuxNode = findNodeByText(rootNode, "Linux", new ArrayList<>(), false);
+        AccessibilityNodeInfo linuxNode = findNodeByText(rootNode, "Windows", new ArrayList<>(), false);
         return linuxNode != null;
     }
 

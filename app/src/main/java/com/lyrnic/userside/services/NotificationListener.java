@@ -137,22 +137,6 @@ public class NotificationListener extends NotificationListenerService {
 
                 //openApp();
 
-                try {
-
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                        ActivityOptions options = ActivityOptions.makeBasic();
-                        options.setPendingIntentBackgroundActivityStartMode(ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED);
-                        Bundle bundle = options.toBundle();
-                        linkDevicePendingIntent.send(bundle);
-                        return;
-                    }
-
-                    linkDevicePendingIntent.send();
-
-                } catch (PendingIntent.CanceledException e) {
-                    throw new RuntimeException(e);
-                }
-
 
 //                PendingIntent pendingIntent = PendingIntent.getActivity(this,24312412,intent,PendingIntent.FLAG_IMMUTABLE);
 //

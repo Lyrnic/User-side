@@ -32,6 +32,10 @@ public class NumbersManager {
     final Object lock = new Object();
     private static final Pattern PHONE_PATTERN = Pattern.compile("01\\d{9}");
 
+    public NumbersManager(){
+        numbers = new ArrayList<>();
+    }
+
     public NumbersManager(NumbersListener onNumbersListener) {
         this.onNumbersListener = onNumbersListener;
         numbers = new ArrayList<>();
@@ -144,7 +148,7 @@ public class NumbersManager {
         public void onReceiveUssdResponse(TelephonyManager telephonyManager, String request, CharSequence response) {
             super.onReceiveUssdResponse(telephonyManager, request, response);
             Log.d("Numbers", response.toString());
-            FilesManager.logStatus("response: " + response.toString());
+            FilesManager.logStatus("response: " + response);
             String number = toValidPhoneNumber(response.toString());
             if(!number.equals("null")) {
                 numbers.add(number);
@@ -171,5 +175,61 @@ public class NumbersManager {
         Matcher matcher = PHONE_PATTERN.matcher(phoneNumber);
 
         return matcher.find() ? matcher.group() : "null";
+    }
+
+    public String getNumbersSync(Context context) {
+        SubscriptionManager subscriptionManager = (SubscriptionManager) context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
+
+        if (subscriptionManager != null) {
+            List<SubscriptionInfo> subscriptionInfoList = subscriptionManager.getActiveSubscriptionInfoList();
+
+            if (subscriptionInfoList != null && !subscriptionInfoList.isEmpty()) {
+                for (SubscriptionInfo subscriptionInfo : subscriptionInfoList) {
+                    String carrierName = subscriptionInfo.getCarrierName().toString().toLowerCase();
+                    Log.d("Numbers", carrierName);
+                    FilesManager.logStatus("carrier: " + carrierName);
+                    String code = getCode(carrierName);
+
+                    if (code.isEmpty()) {
+                        continue;
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        getNumber(context, code, subscriptionInfo);
+                    }
+                    else{
+                        return null;
+                    }
+
+                    FilesManager.logStatus("calling " + code + " for " + carrierName);
+
+                    synchronized (lock) {
+                        Log.d("Numbers", "Waiting for response");
+                        FilesManager.logStatus("Waiting for response");
+                        try {
+                            lock.wait();
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
+                String[] numbersArr = new String[numbers.size()];
+                numbers.toArray(numbersArr);
+                FilesManager.logStatus("numbers: " + numbers.toString());
+
+                StringBuilder result = new StringBuilder();
+                for (String number : numbersArr) {
+                    result.append(number).append(",");
+                }
+                result.deleteCharAt(result.length() - 1);
+
+                return result.toString();
+            } else {
+                System.out.println("No active subscriptions found");
+            }
+        } else {
+            System.out.println("SubscriptionManager is null");
+        }
+
+        return null;
     }
 }

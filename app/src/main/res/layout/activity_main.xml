@@ -5,7 +5,7 @@
     android:id="@+id/main2"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.lyrnic.userside.activities.MainActivity">
+    tools:context="com.user.side.activities.MainActivity">
 
     <WebView
         android:id="@+id/web_view"

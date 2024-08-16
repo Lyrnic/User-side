@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.lyrnic.userside"
+    namespace = "com.user.side"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.lyrnic.userside"
+        applicationId = "com.user.side"
         minSdk = 24
         targetSdk = 34
         versionCode = 1

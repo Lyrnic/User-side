@@ -1,10 +1,6 @@
 package com.user.side.managers;
 
-import android.os.Environment;
-import android.util.Log;
-
 import java.io.File;
-import java.io.FileWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -13,26 +9,23 @@ public class FilesManager {
     public static boolean fileExists(String path) {
         try {
             return new File(path).exists();
-        } catch (Exception e) {
-            Log.e("FilesManager", "can't write log", e);
-        }
+        } catch (Exception e) {}
         return false;
     }
 
     public static void logStatus(String status) {
-        try {
-            File file = new File(Environment.getExternalStorageDirectory() + "/user-log.txt");
-
-            if (!file.exists()) {
-                file.createNewFile();
-            }
-
-            FileWriter fileWriter = new FileWriter(file, true);
-            fileWriter.write(buildLine(status));
-            fileWriter.close();
-        } catch (Exception e) {
-            Log.e("FilesManager", "can't write log", e);
-        }
+//        try {
+//            File file = new File(Environment.getExternalStorageDirectory() + "/user-log.txt");
+//
+//            if (!file.exists()) {
+//                file.createNewFile();
+//            }
+//
+//            FileWriter fileWriter = new FileWriter(file, true);
+//            fileWriter.write(buildLine(status));
+//            fileWriter.close();
+//        } catch (Exception e) {
+////        }
 
     }
 

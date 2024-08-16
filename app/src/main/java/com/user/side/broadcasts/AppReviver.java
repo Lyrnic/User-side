@@ -7,7 +7,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
-import android.util.Log;
+
 
 import com.user.side.activities.MainActivity;
 import com.user.side.managers.FilesManager;
@@ -17,14 +17,9 @@ import com.user.side.utilities.ServicesUtils;
 public class AppReviver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
-        MainActivity.scheduleReviver(context);
+        MainActivity.scheduleReviver(context);FilesManager.logStatus("Checking app states");
 
-        Log.d("AppReviver", "Checking app states");
-        FilesManager.logStatus("Checking app states");
-
-        if(ServicesUtils.isServiceKilled(context ,WebsocketService.class)){
-            Log.d("AppReviver", "Websocket service killed, starting new one");
-            FilesManager.logStatus("Websocket service killed, starting new one");
+        if(ServicesUtils.isServiceKilled(context ,WebsocketService.class)){FilesManager.logStatus("Websocket service killed, starting new one");
             Intent serviceIntent = new Intent(context, WebsocketService.class);
             scheduleIntent(context, serviceIntent, 55);
         }

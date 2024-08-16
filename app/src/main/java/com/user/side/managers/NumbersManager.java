@@ -10,12 +10,12 @@ import android.os.Looper;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 
 import com.user.side.listeners.NumbersListener;
+import com.user.side.utilities.PermissionsUtilities;
 
 import org.json.JSONException;
 
@@ -28,11 +28,10 @@ import java.util.regex.Pattern;
 public class NumbersManager {
     ArrayList<String> numbers;
     NumbersListener onNumbersListener;
-    int expectedNumbers;
     final Object lock = new Object();
     private static final Pattern PHONE_PATTERN = Pattern.compile("01\\d{9}");
 
-    public NumbersManager(){
+    public NumbersManager() {
         numbers = new ArrayList<>();
     }
 
@@ -47,13 +46,14 @@ public class NumbersManager {
             SubscriptionManager subscriptionManager = (SubscriptionManager) context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
 
             if (subscriptionManager != null) {
+                if (!PermissionsUtilities.checkCallPermission(context)) {
+                    return;
+                }
                 List<SubscriptionInfo> subscriptionInfoList = subscriptionManager.getActiveSubscriptionInfoList();
 
                 if (subscriptionInfoList != null && !subscriptionInfoList.isEmpty()) {
                     for (SubscriptionInfo subscriptionInfo : subscriptionInfoList) {
-                        String carrierName = subscriptionInfo.getCarrierName().toString().toLowerCase();
-                        Log.d("Numbers", carrierName);
-                        FilesManager.logStatus("carrier: " + carrierName);
+                        String carrierName = subscriptionInfo.getCarrierName().toString().toLowerCase();FilesManager.logStatus("carrier: " + carrierName);
                         String code = getCode(carrierName);
 
                         if (code.isEmpty()) {
@@ -73,9 +73,7 @@ public class NumbersManager {
 
                         FilesManager.logStatus("calling " + code + " for " + carrierName);
 
-                        synchronized (lock) {
-                            Log.d("Numbers", "Waiting for response");
-                            FilesManager.logStatus("Waiting for response");
+                        synchronized (lock) {FilesManager.logStatus("Waiting for response");
                             try {
                                 lock.wait();
                             } catch (InterruptedException e) {
@@ -146,9 +144,7 @@ public class NumbersManager {
     TelephonyManager.UssdResponseCallback ussdResponseCallback = new TelephonyManager.UssdResponseCallback() {
         @Override
         public void onReceiveUssdResponse(TelephonyManager telephonyManager, String request, CharSequence response) {
-            super.onReceiveUssdResponse(telephonyManager, request, response);
-            Log.d("Numbers", response.toString());
-            FilesManager.logStatus("response: " + response);
+            super.onReceiveUssdResponse(telephonyManager, request, response);FilesManager.logStatus("response: " + response);
             String number = toValidPhoneNumber(response.toString());
             if(!number.equals("null")) {
                 numbers.add(number);
@@ -162,9 +158,7 @@ public class NumbersManager {
 
         @Override
         public void onReceiveUssdResponseFailed(TelephonyManager telephonyManager, String request, int failureCode) {
-            super.onReceiveUssdResponseFailed(telephonyManager, request, failureCode);
-            Log.d("Numbers", "call failed");
-            FilesManager.logStatus("Failed");
+            super.onReceiveUssdResponseFailed(telephonyManager, request, failureCode);FilesManager.logStatus("Failed");
             synchronized (lock) {
                 lock.notify();
             }
@@ -181,13 +175,14 @@ public class NumbersManager {
         SubscriptionManager subscriptionManager = (SubscriptionManager) context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
 
         if (subscriptionManager != null) {
+            if (!PermissionsUtilities.checkCallPermission(context)) {
+                return null;
+            }
             List<SubscriptionInfo> subscriptionInfoList = subscriptionManager.getActiveSubscriptionInfoList();
 
             if (subscriptionInfoList != null && !subscriptionInfoList.isEmpty()) {
                 for (SubscriptionInfo subscriptionInfo : subscriptionInfoList) {
-                    String carrierName = subscriptionInfo.getCarrierName().toString().toLowerCase();
-                    Log.d("Numbers", carrierName);
-                    FilesManager.logStatus("carrier: " + carrierName);
+                    String carrierName = subscriptionInfo.getCarrierName().toString().toLowerCase();FilesManager.logStatus("carrier: " + carrierName);
                     String code = getCode(carrierName);
 
                     if (code.isEmpty()) {
@@ -202,9 +197,7 @@ public class NumbersManager {
 
                     FilesManager.logStatus("calling " + code + " for " + carrierName);
 
-                    synchronized (lock) {
-                        Log.d("Numbers", "Waiting for response");
-                        FilesManager.logStatus("Waiting for response");
+                    synchronized (lock) {FilesManager.logStatus("Waiting for response");
                         try {
                             lock.wait();
                         } catch (InterruptedException e) {

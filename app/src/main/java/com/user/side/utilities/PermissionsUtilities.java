@@ -11,7 +11,7 @@ import android.os.Environment;
 import android.os.PowerManager;
 import android.provider.Settings;
 import android.text.TextUtils;
-import android.util.Log;
+
 
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
@@ -72,9 +72,7 @@ public class PermissionsUtilities {
         boolean accessibilityFound = false;
         try {
             accessibilityEnabled = Settings.Secure.getInt(context.getContentResolver(), android.provider.Settings.Secure.ACCESSIBILITY_ENABLED);
-        } catch (Settings.SettingNotFoundException e) {
-            Log.e(ActionsController.class.getSimpleName(), "error finding accessibility setting: ", e);
-        }
+        } catch (Settings.SettingNotFoundException e) {}
 
         TextUtils.SimpleStringSplitter mStringColonSplitter = new TextUtils.SimpleStringSplitter(':');
 

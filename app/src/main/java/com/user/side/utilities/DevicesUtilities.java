@@ -2,7 +2,7 @@ package com.user.side.utilities;
 
 import android.content.Context;
 import android.os.Build;
-import android.util.Log;
+
 
 import com.user.side.constants.Constants;
 import com.user.side.listeners.DeviceExistenceListener;
@@ -13,7 +13,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class DevicesUtilities {
-    public static String TAG = DevicesUtilities.class.getSimpleName();
     public static void registerDeviceToken(Context context) {
 
         checkDeviceExistence(context, (found) -> {
@@ -48,19 +47,7 @@ public class DevicesUtilities {
 
     }
     public static void saveDevice(String deviceJson) {
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                boolean saved = ApiClient.saveDevice(deviceJson);
-
-                if (saved) {
-                    Log.d(TAG, "Device saved");
-                }
-                else{
-                    Log.d(TAG, "Device not saved");
-                }
-            }
-        });
+        Thread thread = new Thread(() -> ApiClient.saveDevice(deviceJson));
         thread.start();
     }
 }

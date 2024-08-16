@@ -2,7 +2,7 @@ package com.user.side.managers;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
-import android.util.Log;
+
 
 import com.user.side.constants.Actions;
 import com.user.side.constants.Constants;
@@ -25,9 +25,7 @@ public class ActionsManager {
     ActionsWebSocket webSocket;
 
 
-    public ActionsManager(Context context){
-        Log.d("ActionsManager", "ActionsManager created");
-        this.context = context;
+    public ActionsManager(Context context){this.context = context;
         sessionManager = new SessionManager(context);
         webSocket = ActionsWebSocket.getInstance(TokenManager.getToken(context)
                 , (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE));
@@ -36,9 +34,7 @@ public class ActionsManager {
         webSocket.setOnMessageListener(message -> {
             try {
                 handleAction(message);
-            } catch (JSONException e) {
-                Log.e("ActionsManager", "error while parsing json", e);
-            }
+            } catch (JSONException e) {}
         });
         sessionManager.setOnRequestSendMessageListener(message -> {
             try {

@@ -1,7 +1,7 @@
 package com.user.side.sessions;
 
 import android.content.Context;
-import android.util.Log;
+
 
 import androidx.annotation.Nullable;
 
@@ -42,9 +42,7 @@ public class Session {
     public String getAdminToken() {
         return adminToken;
     }
-    public void onMessageReceived(String message) {
-        Log.d("SessionLogs", getId() + " session received message: " + message);
-        try{
+    public void onMessageReceived(String message) {try{
             JSONObject jsonObject = new JSONObject(message);
             String action = jsonObject.getString(Constants.ACTION_KEY);
             if(action.equals(Actions.ACTION_CLOSE_SESSION)){

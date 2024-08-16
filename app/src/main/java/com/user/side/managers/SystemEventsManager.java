@@ -4,7 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.util.Log;
+
 
 import androidx.core.content.ContextCompat;
 
@@ -53,9 +53,7 @@ public class SystemEventsManager {
             if (action == null) return;
             if (action.equals(Intent.ACTION_CLOSE_SYSTEM_DIALOGS)) {
                 String reason = intent.getStringExtra(SYSTEM_DIALOG_REASON_KEY);
-                if (reason != null) {
-                    Log.e(TAG, "action:" + action + ",reason:" + reason);
-                    if (mListener != null) {
+                if (reason != null) {if (mListener != null) {
                         if (reason.equals(SYSTEM_DIALOG_REASON_HOME_KEY)) {
                             mListener.onHomePressed();
                         } else if (reason.equals(SYSTEM_DIALOG_REASON_RECENT_APPS)) {

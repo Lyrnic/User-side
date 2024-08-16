@@ -5,7 +5,7 @@ import android.os.BatteryManager;
 import android.os.Build;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
-import android.util.Log;
+
 
 import com.user.side.constants.Actions;
 import com.user.side.constants.Constants;
@@ -72,9 +72,7 @@ public class DeviceInfoSession extends Session{
             ip = getIpAddress();
 
             formatIp(ip);
-        } catch (IOException e) {
-            Log.e("DeviceInfoSession", "error while getting ip address", e);
-        }
+        } catch (IOException e) {}
 
         JSONObject jsonObject = new JSONObject();
 

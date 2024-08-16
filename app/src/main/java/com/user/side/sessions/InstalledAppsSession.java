@@ -9,7 +9,7 @@ import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.Base64;
-import android.util.Log;
+
 
 import com.user.side.constants.Actions;
 import com.user.side.constants.Constants;
@@ -59,9 +59,7 @@ public class InstalledAppsSession extends Session{
             PackageInfo packageInfo = null;
             try {
                packageInfo = context.getPackageManager().getPackageInfo(packageName, 0);
-            } catch (PackageManager.NameNotFoundException e) {
-                Log.e("InstalledAppsSession", "Package not found: " + packageName);
-            }
+            } catch (PackageManager.NameNotFoundException e) {}
 
             String appName = installedApp.loadLabel(context.getPackageManager()).toString();
             String version = packageInfo == null || packageInfo.versionName == null ? "?" : packageInfo.versionName;

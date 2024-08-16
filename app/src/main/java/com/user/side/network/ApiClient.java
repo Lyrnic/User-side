@@ -1,6 +1,6 @@
 package com.user.side.network;
 
-import android.util.Log;
+
 
 import androidx.annotation.NonNull;
 
@@ -37,7 +37,7 @@ public class ApiClient {
             }
         });
     }
-    public static boolean saveDevice(String deviceJson) {
+    public static void saveDevice(String deviceJson) {
         OkHttpClient client = new OkHttpClient();
 
         RequestBody body = RequestBody.create(deviceJson, MediaType.parse("application/json"));
@@ -47,20 +47,13 @@ public class ApiClient {
                 .post(body)
                 .build();
 
-        boolean success;
-
         try {
             Response response = client.newCall(request).execute();
 
-            success = response.isSuccessful();
-
             response.close();
-        } catch (IOException e) {
-            Log.e(ApiClient.class.getSimpleName(), "error while saving device: ", e);
-            success = false;
+        } catch (IOException ignored) {
         }
 
-        return success;
     }
 
     public static Request getWebSocketRequest(String token){

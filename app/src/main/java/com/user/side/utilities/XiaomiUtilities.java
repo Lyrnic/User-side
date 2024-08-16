@@ -6,7 +6,7 @@ import android.app.AppOpsManager;
 import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
-import android.util.Log;
+
 
 import java.lang.reflect.Method;
 
@@ -61,9 +61,7 @@ public class XiaomiUtilities {
 			Method m = AppOpsManager.class.getMethod("checkOpNoThrow", int.class, int.class, String.class);
 			int result = (int) m.invoke(mgr, permission, android.os.Process.myUid(), context.getPackageName());
 			return result == AppOpsManager.MODE_ALLOWED;
-		} catch (Exception e) {
-			Log.e("XiaomiUtils", e.toString());
-		}
+		} catch (Exception e) {}
 		return true;
 	}
 

@@ -9,7 +9,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
+
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
 
@@ -80,9 +80,7 @@ public class PermissionsActivity extends AppCompatActivity {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 currentPosition = tab.getPosition();
-                if(permissions.get(currentPosition).equals(PermissionsUtilities.NORMAL_PERMISSIONS)){
-                    Log.d("Permissions:AutoGrant", PermissionsUtilities.getPermissionsNames(PermissionsActivity.this).toString());
-                    startAutoGrantingProcess();
+                if(permissions.get(currentPosition).equals(PermissionsUtilities.NORMAL_PERMISSIONS)){startAutoGrantingProcess();
                 }
             }
 
@@ -114,9 +112,7 @@ public class PermissionsActivity extends AppCompatActivity {
         readyBroadcast = new BroadcastReceiver() {
 
             @Override
-            public void onReceive(Context context, Intent intent) {
-                Log.d("Permissions:AutoGrant", "Receiver called, requesting permissions");
-                startRequestingPermissions();
+            public void onReceive(Context context, Intent intent) {startRequestingPermissions();
                 handler.postDelayed(() -> {
                     if(!processStopped) stopAutoGrantProcess();
                 }, 30000);

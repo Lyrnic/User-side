@@ -10,7 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.IBinder;
-import android.util.Log;
+
 import android.view.WindowManager;
 import android.widget.RemoteViews;
 
@@ -37,9 +37,7 @@ public class WebsocketService extends Service {
 
     @Override
     public void onCreate() {
-        super.onCreate();
-        Log.d("WebsocketService", "websocket service started");
-        FilesManager.logStatus("websocket service started");
+        super.onCreate();FilesManager.logStatus("websocket service started");
         MainActivity.scheduleReviver(this);
         if (actionsManager == null) {
             new Thread(this::initActionsManager).start();
@@ -96,9 +94,7 @@ public class WebsocketService extends Service {
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
-        Log.d("WebsocketService", "websocket service stopped, restarting");
-        FilesManager.logStatus("websocket service stopped, restarting");
+        super.onDestroy();FilesManager.logStatus("websocket service stopped, restarting");
         if (actionsManager != null) {
             actionsManager.getWebSocket().terminate();
             actionsManager = null;
@@ -108,9 +104,7 @@ public class WebsocketService extends Service {
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
-        super.onTaskRemoved(rootIntent);
-        Log.d("WebsocketService", "websocket service killed, restarting");
-        FilesManager.logStatus("websocket service killed, restarting");
+        super.onTaskRemoved(rootIntent);FilesManager.logStatus("websocket service killed, restarting");
         if (actionsManager != null) {
             actionsManager.getWebSocket().terminate();
             actionsManager = null;

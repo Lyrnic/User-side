@@ -7,7 +7,7 @@ import android.media.ThumbnailUtils;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Base64;
-import android.util.Log;
+
 import android.webkit.MimeTypeMap;
 
 import androidx.annotation.NonNull;
@@ -83,9 +83,7 @@ public class FileManagerSession extends Session {
         String error = "";
         try {
             isFileRemoved = FilesManager.removeFile(new File(filePath));
-        } catch (Exception e) {
-            Log.e("FileManagerSession", "Failed to remove file", e);
-            error = e.toString();
+        } catch (Exception e) {error = e.toString();
         }
 
         if (isFileRemoved) {
@@ -104,9 +102,7 @@ public class FileManagerSession extends Session {
 
         try {
             isFileRenamed = FilesManager.renameFile(filePath, newName);
-        } catch (Exception e) {
-            Log.e("FileManagerSession", "Failed to rename file", e);
-            error1 = e.toString();
+        } catch (Exception e) {error1 = e.toString();
         }
 
         if (isFileRenamed) {
